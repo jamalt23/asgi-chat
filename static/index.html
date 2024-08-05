@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App - Login/Signup</title>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="form-wrapper" id="login-wrapper">
+            <h2>Login</h2>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" placeholder="Enter your username" required>
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <p>Don't have an account? <span class="toggle-form" id="show-signup">Sign up</span></p>
+        </div>
+
+        <div class="form-wrapper hidden" id="signup-wrapper">
+            <h2>Sign Up</h2>
+            <form id="signup-form">
+                <div class="input-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" placeholder="Choose a username" required>
+                </div>
+                <div class="input-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required>
+                </div>
+                <div class="input-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password" required>
+                </div>
+                <button type="submit" class="btn">Sign Up</button>
+            </form>
+            <p>Already have an account? <span class="toggle-form" id="show-login">Login</span></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('show-signup').addEventListener('click', function() {
+            document.getElementById('login-wrapper').classList.add('hidden');
+            document.getElementById('signup-wrapper').classList.remove('hidden');
+        });
+
+        document.getElementById('show-login').addEventListener('click', function() {
+            document.getElementById('signup-wrapper').classList.add('hidden');
+            document.getElementById('login-wrapper').classList.remove('hidden');
+        });
+
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            // Here you can add validation checks or AJAX calls for real authentication
+            // For this demo, we'll assume login is always successful
+
+            // Redirect to chat page after successful login
+            window.location.href = 'chat.html';
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            // Here you can add validation checks or AJAX calls for real registration
+            // For this demo, we'll assume signup is always successful
+
+            // Redirect to chat page after successful signup
+            window.location.href = 'chat.html';
+        });
+    </script>
+    <style>
+        body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.auth-container {
+    background: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    width: 350px;
+}
+
+.form-wrapper {
+    display: none;
+}
+
+.form-wrapper.active, .form-wrapper:not(.hidden) {
+    display: block;
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.input-group input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #333;
+}
+
+.btn {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background: #0056b3;
+}
+
+p {
+    text-align: center;
+    color: #777;
+}
+
+p .toggle-form {
+    color: #007bff;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+p .toggle-form:hover {
+    text-decoration: underline;
+}
+    </style>
+</body>
+</html>

@@ -1,0 +1,7 @@
+asgiref
+daphne
+Django
+djangorestframework
+Pillow
+pytz
+sqlparse

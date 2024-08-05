@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Sign Up</h2>
+    <form id="signup-form" method="POST">
+        {% csrf_token %}
+        <div class="input-group">
+            <label for="username">Username</label>
+            {{ form.username }}
+            {{ form.errors.username }}
+        </div>
+
+        <div class="input-group">
+            <label for="email">Email</label>
+            {{ form.email }}
+            {{ form.email.errors }}
+        </div>
+
+        <div class="input-group">
+            <label for="password">Password</label>
+            {{ form.password1 }}
+            {{ form.errors.password1 }}
+        </div>
+
+        <div class="input-group">
+            <label for="password2">Confirm Password</label>
+            {{ form.password2 }}
+            {{ form.errors.password2 }}
+        </div>
+        {{ form.non_field_errors }}
+
+        <button type="submit" class="btn">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="{% url 'accounts:login' %}">Login</a></p>
+</div>
+{% endblock %}

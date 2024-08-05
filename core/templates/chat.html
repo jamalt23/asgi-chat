@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="chat-container">
+
+        <div class="sidebar">
+            <div class="profile">
+                <img alt="Avatar" class="avatar"
+                {% if user.profile_pic %}
+                    src="{{ user.profile_pic.url }}"
+                {% else %}
+                    src="{% static 'icons/avatar.webp' %}"
+                {% endif %} >
+
+                <h3>{{ user.username }}</h3>
+            </div>
+
+            <nav>
+
+                <h2>Friends</h2>
+                <ul class="friend-list">
+                {% if friends %}
+                    {% for friend in friends %}
+                    <li class="friend">
+                        <span>{{ friend }}</span>
+                        <button class="btn-unfriend">Unfriend</button>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="no-friends">No friends</li>
+                {% endif %}
+                </ul>
+
+                <h2>Friend Requests</h2>
+                <ul class="friend-request-list">
+                {% if friend_requests %}
+                    {% for i in friend_requests %}
+                    <li class="friend-request">
+                        <span>{{ i.from_user }}</span>
+                        <button class="btn-accept">Accept</button>
+                        <button class="btn-reject">Reject</button>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="no-friends">No friend requests</li>
+                {% endif %}
+                </ul>
+
+            </nav>
+
+        </div>
+
+        <div class="chat-section">
+            <div class="chat-header">
+                <h2>Global Chat</h2>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                {% for message in messages %}
+                <div class="message" id="{{ message.id }}">
+                    <p class="message-text">{{ message }}</p>
+                </div>
+                <!-- <img style="max-height: 30px;" src="{% static 'icons/remove.svg' %}?" alt=""> -->
+                {% endfor %}
+            </div>
+
+            <form class="message-form" id="message-form">
+                {% csrf_token %}
+                <input type="text" id="message-input" placeholder="Type a message...">
+                <button id="send-button">Send</button>
+            </form>
+
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    $('.friend-request button').on('click', function(e) {
+        let fromUser = $(this).parent().find('span').text()
+        let action = $(this).text().toLowerCase()
+        $.post( `/api/${action}-friend-request/`, {
+            'from_user': fromUser,
+            'csrfmiddlewaretoken': csrftoken
+        }, () => {
+            $(this).parent().remove()
+            if (action == 'accept') { 
+                let friendElement = $(`<li class="friend">`)
+                .append(`<span>${fromUser}</span>`)
+                .append(`<button class="btn-unfriend">Unfriend</button>`)
+                 .on('click', unfriend)
+                $('.friend-list').append(friendElement)
+                $('.no-friends').remove()
+            }
+        })
+    })
+
+    $('.btn-unfriend').on('click', unfriend); function unfriend(e) {
+        let friend = $(this).parent().find('span').text()
+        $.post( `/api/unfriend/`, {
+            'friend': friend,
+            'csrfmiddlewaretoken': csrftoken
+        }, () => {
+            $(this).parent().remove()
+        })
+    }
+
+    let eventSource = new EventSource("api/stream-chat-messages/")
+
+    eventSource.onopen = function() {
+        console.log("Connection established")
+    }
+
+    eventSource.onmessage = function(e) {
+        let data = JSON.parse(e.data)
+        if (data.action == 'create') {
+            renderMessage(data.message)
+        } else if (data.action == 'delete') {
+            $(`.message#${data.message_id}`).remove()
+        }
+    }
+
+    function renderMessage(message){
+        if (!$(`.message#${message.id}`).length) { // check if message already exists
+            let messageElement = $('<div class="message">')
+            .prop('id', message.id)
+            .append($('<p class="message-text">')
+            .text(`${message.author}: ${message.text}`))
+            $('#chat-messages').append(messageElement)
+        }
+    }
+
+    $('#message-form').on('submit', function(event) {
+        event.preventDefault() // Prevent the form from submitting the traditional way
+        let text = $('#message-input').val()
+        if (text.trim()) { // check if message text is not empty
+            $.post(location.href, {
+                'text': text,
+                'csrfmiddlewaretoken': csrftoken
+            }, () => {
+                $('#message-input').val('') // Clear the message input
+            })
+        }
+    });
+
+</script>
+{% endblock %}
