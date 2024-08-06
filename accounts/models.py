@@ -2,9 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
-    bio = models.TextField(max_length=1000, blank=True)
+    bio = models.TextField(max_length=190, blank=True)
     profile_pic = models.ImageField(upload_to='images', null=True, blank=True)
-    friends = models.ManyToManyField('self', symmetrical=False, related_name='friends_with')
+    friends = models.ManyToManyField('self', symmetrical=False, related_name='friends_with', blank=True)
+    is_typing = models.BooleanField(default=False)
 
     def add_friend(self, friend):
         self.friends.add(friend)

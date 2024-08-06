@@ -23,11 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-from dotenv import load_dotenv
 from os import getenv
+from dotenv import load_dotenv
 
 load_dotenv()
-SECRET_KEY = getenv('DJANGO_SECRET_KEY')
+SECRET_KEY = getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -141,3 +141,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
 
+# SESSION_COOKIE_SECURE = True
+
+# CSRF_COOKIE_SECURE = True
+
+LOGIN_REDIRECT_URL = '/'

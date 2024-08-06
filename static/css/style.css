@@ -103,6 +103,16 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.chat-header h2 {
+    margin: 0;
+}
+
+#typing-users{
+    margin: 0;
+    height: 20px;
+    font-style: italic;
+}
+
 .chat-messages {
     flex: 1;
     padding: 20px;
