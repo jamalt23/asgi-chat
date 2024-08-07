@@ -2,6 +2,9 @@
     .mobile {
         display: block;
     }
+    body{
+        height: 90vh;
+    }
     .sidebar {
         display: none;
     }

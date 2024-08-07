@@ -59,7 +59,8 @@
             <div class="chat-messages" id="chat-messages">
                 {% for message in messages %}
                 <div class="message" id="{{ message.id }}">
-                    <p class="message-text">{{ message }}</p>
+                    <span class="message-text">{{ message }}</span>
+                    <span class="timestamp">{{ message.timestamp | date:'Y-m-d H:i' }}Z</span>
                     <!-- <img style="max-height: 30px;" src="{% static 'icons/remove.svg' %}?" alt=""> -->
                 </div>
                 {% endfor %}
@@ -79,7 +80,47 @@
 
 {% block scripts %}
 <script>
+    $('.message').last()[0].scrollIntoView() // scroll to bottom of chat
+    $('.message .timestamp').each(function() {
+        const timestamp = $(this).text();
+        $(this).text( formatDate(timestamp) );
+    })
+    
+    function formatDate(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const options = { hour: '2-digit', minute: '2-digit' };
+        
+        const isToday = date.toDateString() === now.toDateString();
 
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        const isYesterday = date.toDateString() === yesterday.toDateString();
+
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        const isThisWeek = date >= startOfWeek;
+
+        if (isToday) {
+            return date.toLocaleString([], options);
+        } else if (isYesterday) {
+            return 'Yesterday, ' + date.toLocaleString([], options);
+        } else if (isThisWeek) {
+            return date.toLocaleString('en-US', {
+                weekday: 'long',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } else {
+            return date.toLocaleDateString([], {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }) + ' ' + date.toLocaleString([], options);
+        }
+    }
+
+    // friend requests
     $('.friend-request button').on('click', function(e) {
         let fromUser = $(this).parent().find('span').text()
         let action = $(this).text().toLowerCase()
@@ -109,6 +150,7 @@
         })
     }
 
+    // chat
     let eventSource = new EventSource("api/stream-chat-events/")
 
     eventSource.onopen = function() {
@@ -116,11 +158,11 @@
     }
 
     eventSource.onmessage = function(e) {
-        let data = JSON.parse(e.data)
+        const data = JSON.parse(e.data)
         console.log(data)
         if (data.action == 'create') {
-            let message = data.message
-            message.timestamp = new Date(message.timestamp + 'Z') // add 'Z' to make it UTC
+            const message = data.message
+            message.timestamp = formatDate(message.timestamp + 'Z') // add 'Z' to make it UTC
             renderMessage(message)
         } else if (data.action == 'delete') {
             $(`.message#${data.message_id}`).remove()
@@ -133,8 +175,13 @@
         if (!$(`.message#${message.id}`).length) { // check if message already exists
             let messageElement = $('<div class="message">')
             .prop('id', message.id)
-            .append($('<p class="message-text">')
-            .text(`${message.author}: ${message.text}`))
+            .append($('<span class="message-text">')
+             .text(`${message.author}: ${message.text}`));
+
+            messageElement.append(
+                $(`<span class="timestamp">${message.timestamp}</span>`)
+            );
+
             $('#chat-messages').append(messageElement)
         }
     }
@@ -152,6 +199,7 @@
         }
     }
 
+    // Send message
     $('#message-form').on('submit', function(event) {
         event.preventDefault() // Prevent the form from submitting the traditional way
         let text = $('#message-input').val()
@@ -165,6 +213,7 @@
         }
     });
 
+    // Typing status
     let typingTimeout
     let typingStatus = false
     $('#message-input').on('input', function(event) {
