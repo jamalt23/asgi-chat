@@ -58,15 +58,19 @@
             </div>
             <div class="chat-messages" id="chat-messages">
                 {% for message in messages %}
-                <div class="message" id="{{ message.id }}">
+                <div class="message {% if message.author == user %}own-message{% endif %}" id="{{ message.id }}">
                     <span class="message-text">{{ message }}</span>
                     <span class="timestamp">{{ message.timestamp | date:'Y-m-d H:i' }}Z</span>
-                    <!-- <img style="max-height: 30px;" src="{% static 'icons/remove.svg' %}?" alt=""> -->
+                    {% if message.author == request.user %}
+                    <div class="remove-message" onclick="deleteMessage('{{ message.id }}')">
+                        <img src="{% static 'icons/remove.svg' %}?" alt="">
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
 
-            <form class="message-form" id="message-form">
+            <form class="message-form" id="message-form" method="post">
                 {% csrf_token %}
                 <input type="text" id="message-input" autocomplete="off" placeholder="Type a message...">
                 <button id="send-button">Send</button>
@@ -80,7 +84,9 @@
 
 {% block scripts %}
 <script>
-    $('.message').last()[0].scrollIntoView() // scroll to bottom of chat
+    if ($('.message').length > 0) {
+        $('.message').last()[0].scrollIntoView() // scroll to bottom of chat
+    }
     $('.message .timestamp').each(function() {
         const timestamp = $(this).text();
         $(this).text( formatDate(timestamp) );
@@ -132,8 +138,9 @@
             if (action == 'accept') { 
                 let friendElement = $(`<li class="friend">`)
                 .append(`<span>${fromUser}</span>`)
-                .append(`<button class="btn-unfriend">Unfriend</button>`)
-                 .on('click', unfriend)
+                .append($(`<button class="btn-unfriend">Unfriend</button>`)
+                 .on('click', unfriend))
+
                 $('.friend-list').append(friendElement)
                 $('#no-friends').hide()
             }
@@ -176,27 +183,32 @@
             let messageElement = $('<div class="message">')
             .prop('id', message.id)
             .append($('<span class="message-text">')
-             .text(`${message.author}: ${message.text}`));
+             .text(`${message.author}: ${message.text}`)
+            )
 
-            messageElement.append(
+            .append(
                 $(`<span class="timestamp">${message.timestamp}</span>`)
-            );
+            )
+
+            if (message.author == '{{ user.username }}') {
+                messageElement.addClass('own-message')
+                .append($('<div class="delete-message">')
+                 .on('click', () => deleteMessage(message.id))
+                 .append($('<img src="/static/icons/remove.svg">'))
+                )
+            }
 
             $('#chat-messages').append(messageElement)
         }
     }
 
-    function renderTypingUsers(users) {
-        if (users.length==1) {
-            $('#typing-users').text(`${users[0]} is typing...`)
-        } else if (users.length == 2) {
-            $('#typing-users').text(`${users[0]} and ${users[1]} are typing...`)
-        } else if (users.length > 2) {
-            $('#typing-users').text(`${users.join(', ')} are typing...`)
-        }
-         else {
-            $('#typing-users').text(' ')
-        }
+    function deleteMessage(messageId) {
+        $.post( `/api/delete-message/`, {
+            'message_id': messageId,
+            'csrfmiddlewaretoken': csrftoken
+        }, () => {
+            $(`.message#${messageId}`).remove()
+        })
     }
 
     // Send message
@@ -223,7 +235,6 @@
             sendTypingStatus(true)
         }
         typingTimeout = setTimeout(() => {
-        sendTypingStatus(true)
         var typingTimeout = setTimeout(() => {
             sendTypingStatus(false)
         }, 3000) // send not typing status after 3 seconds
@@ -237,6 +248,19 @@
             'csrfmiddlewaretoken': csrftoken,
             'is_typing': isTyping
         })
+    }
+
+    function renderTypingUsers(users) {
+        if (users.length==1) {
+            $('#typing-users').text(`${users[0]} is typing...`)
+        } else if (users.length == 2) {
+            $('#typing-users').text(`${users[0]} and ${users[1]} are typing...`)
+        } else if (users.length > 2) {
+            $('#typing-users').text(`${users.join(', ')} are typing...`)
+        }
+         else {
+            $('#typing-users').text(' ')
+        }
     }
 
 </script>

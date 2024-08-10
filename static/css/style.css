@@ -131,6 +131,7 @@ body {
     border-radius: 5px;
     margin-bottom: 10px;
     max-width: 70%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .timestamp {
@@ -139,6 +140,17 @@ body {
     margin-left: 10px;
     user-select: none;
     -webkit-user-select: none;
+}
+
+.remove-message{
+    margin-left: 10px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.remove-message img{
+    width: 20px;
+    height: 20px;
 }
 
 .message-form {

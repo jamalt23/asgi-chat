@@ -4,16 +4,16 @@ from django.http import HttpRequest, StreamingHttpResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from core.models import *
 
-@login_required
-async def delete_message(request: HttpRequest) -> HttpResponse:
+def delete_message(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
         message_id = request.POST.get('message_id')
         try:
             # Check if the message exists and belongs to the user
-            await Message.objects.filter(id=int(message_id), author=request.user).adelete()
+            Message.objects.filter(id=int(message_id), author=request.user).delete()
             return HttpResponse(status=200)
         except:
             return HttpResponse(status=500)
+    return HttpResponse(status=400)
 
 async def stream_chat_events(request: HttpRequest) -> StreamingHttpResponse:
     """
