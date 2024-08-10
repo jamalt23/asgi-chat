@@ -5,3 +5,4 @@ djangorestframework
 Pillow
 pytz
 sqlparse
+python-dotenv
