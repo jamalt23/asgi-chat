@@ -142,13 +142,13 @@ body {
     -webkit-user-select: none;
 }
 
-.remove-message{
+.delete-message{
     margin-left: 10px;
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
 }
-.remove-message img{
+.delete-message img{
     width: 20px;
     height: 20px;
 }

@@ -62,7 +62,7 @@
                     <span class="message-text">{{ message }}</span>
                     <span class="timestamp">{{ message.timestamp | date:'Y-m-d H:i' }}Z</span>
                     {% if message.author == request.user %}
-                    <div class="remove-message" onclick="deleteMessage('{{ message.id }}')">
+                    <div class="delete-message" onclick="deleteMessage('{{ message.id }}')">
                         <img src="{% static 'icons/remove.svg' %}?" alt="">
                     </div>
                     {% endif %}
@@ -166,7 +166,7 @@
 
     eventSource.onmessage = function(e) {
         const data = JSON.parse(e.data)
-        console.log(data)
+        console.log( data )
         if (data.action == 'create') {
             const message = data.message
             message.timestamp = formatDate(message.timestamp + 'Z') // add 'Z' to make it UTC
