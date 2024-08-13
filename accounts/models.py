@@ -2,10 +2,18 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
+    email = models.EmailField(blank=False, unique=True, max_length=254)
     bio = models.TextField(max_length=190, blank=True)
     profile_pic = models.ImageField(upload_to='images', null=True, blank=True)
     friends = models.ManyToManyField('self', symmetrical=False, related_name='friends_with', blank=True)
     is_typing = models.BooleanField(default=False)
+
+    @property
+    def pfp(self): # profile picture
+        if self.profile_pic:
+            return self.profile_pic.url
+        else:
+            return '/static/icons/profile.png?'
 
     def add_friend(self, friend):
         self.friends.add(friend)

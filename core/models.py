@@ -10,7 +10,7 @@ class Message(models.Model):
         return {
             'id': self.id,
             'text': self.text,
-            'author': self.author.username,
+            'author': { 'username': self.author.username, 'pfp': self.author.pfp },
             'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M'),
         }
 

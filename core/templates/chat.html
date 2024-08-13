@@ -6,14 +6,14 @@
 
         <div class="sidebar">
             <div class="profile">
-                <img alt="Avatar" class="avatar"
-                {% if user.profile_pic %}
-                    src="{{ user.profile_pic.url }}"
-                {% else %}
-                    src="{% static 'icons/avatar.webp' %}"
-                {% endif %} >
+                <img alt="Avatar" class="avatar" src="{{ user.pfp }}">
 
                 <h3>{{ user.username }}</h3>
+
+                <form action="{% url 'accounts:logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
             </div>
 
             <nav>
@@ -59,13 +59,24 @@
             <div class="chat-messages" id="chat-messages">
                 {% for message in messages %}
                 <div class="message {% if message.author == user %}own-message{% endif %}" id="{{ message.id }}">
-                    <span class="message-text">{{ message }}</span>
-                    <span class="timestamp">{{ message.timestamp | date:'Y-m-d H:i' }}Z</span>
-                    {% if message.author == request.user %}
-                    <div class="delete-message" onclick="deleteMessage('{{ message.id }}')">
-                        <img src="{% static 'icons/remove.svg' %}?" alt="">
+                    
+                    <div class="message-info">
+                        <img alt="Avatar" src="{{ message.author.pfp }}">
+
+                        <span class="message-author">{{ message.author }}</span>
+                        <span class="timestamp">{{ message.timestamp | date:'Y-m-d H:i' }}Z</span>
+    
+                        {% if message.author == request.user %}
+                        <div class="delete-message" onclick="deleteMessage('{{ message.id }}')">
+                            <img src="{% static 'icons/remove.svg' %}?" alt="">
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
+
+                    <p class="message-text">
+                        {{ message.text }}
+                    </p>
+
                 </div>
                 {% endfor %}
             </div>
@@ -128,8 +139,8 @@
 
     // friend requests
     $('.friend-request button').on('click', function(e) {
-        let fromUser = $(this).parent().find('span').text()
-        let action = $(this).text().toLowerCase()
+        const fromUser = $(this).parent().find('span').text()
+        const action = $(this).text().toLowerCase()
         $.post( `/api/${action}-friend-request/`, {
             'from_user': fromUser,
             'csrfmiddlewaretoken': csrftoken
@@ -146,9 +157,9 @@
             }
         })
     })
-
+ 
     $('.btn-unfriend').on('click', unfriend); function unfriend(e) {
-        let friend = $(this).parent().find('span').text()
+        const friend = $(this).parent().find('span').text()
         $.post( `/api/unfriend/`, {
             'friend': friend,
             'csrfmiddlewaretoken': csrftoken
@@ -158,7 +169,7 @@
     }
 
     // chat
-    let eventSource = new EventSource("api/stream-chat-events/")
+    const eventSource = new EventSource("api/stream-chat-events/")
 
     eventSource.onopen = function() {
         console.log("Connection established")
@@ -166,7 +177,7 @@
 
     eventSource.onmessage = function(e) {
         const data = JSON.parse(e.data)
-        console.log( data )
+        console.log(data)
         if (data.action == 'create') {
             const message = data.message
             message.timestamp = formatDate(message.timestamp + 'Z') // add 'Z' to make it UTC
@@ -182,23 +193,27 @@
         if (!$(`.message#${message.id}`).length) { // check if message already exists
             let messageElement = $('<div class="message">')
             .prop('id', message.id)
-            .append($('<span class="message-text">')
-             .text(`${message.author}: ${message.text}`)
+            .append($('<div class="message-info">')
+                .append(`<img src="${message.author.pfp}" alt="Avatar">`)
+                .append(`<span class="message-author">${message.author.username}</span>`)
+                .append(`<span class="timestamp">${message.timestamp}</span>`)
             )
 
-            .append(
-                $(`<span class="timestamp">${message.timestamp}</span>`)
+            .append($('<p class="message-text">')
+                .text(message.text)
             )
 
             if (message.author == '{{ user.username }}') {
                 messageElement.addClass('own-message')
-                .append($('<div class="delete-message">')
-                 .on('click', () => deleteMessage(message.id))
-                 .append($('<img src="/static/icons/remove.svg">'))
+                .find('.message-info').append(
+                    $('<div class="delete-message">')
+                     .on('click', ()=>{ deleteMessage(message.id) })
+                     .append('<img src="/static/icons/remove.svg">')
                 )
             }
 
             $('#chat-messages').append(messageElement)
+            messageElement[0].scrollIntoView()
         }
     }
 
@@ -229,19 +244,18 @@
     let typingTimeout
     let typingStatus = false
     $('#message-input').on('input', function(event) {
-        let text = $(this).val()
+        const text = $(this).val()
         clearTimeout(typingTimeout)
-        if (!typingStatus){
+        if (!typingStatus && text) {
             sendTypingStatus(true)
         }
         typingTimeout = setTimeout(() => {
-        var typingTimeout = setTimeout(() => {
-            sendTypingStatus(false)
-        }, 3000) // send not typing status after 3 seconds
-    })
+            if (typingStatus) {
+                sendTypingStatus(false)
+            }
+        }, 10000) // send not typing status after 10 seconds
     })
 
-    sendTypingStatus(false)
     function sendTypingStatus(isTyping) {
         typingStatus = isTyping
         $.post('api/set-typing-status/', {

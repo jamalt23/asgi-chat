@@ -1,30 +1,47 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView
-from django.http import HttpRequest
+from django.shortcuts import redirect
+from django.contrib.auth import login as auth_login
+from django.views.generic import CreateView
+from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetConfirmView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from accounts.forms import LoginForm, SignUpForm
+from accounts.forms import LoginForm, SignUpForm, PasswordResetForm, SetPasswordForm
 
-def signup(request: HttpRequest):
-    next_page = request.GET.get('next')
-    form = SignUpForm()
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            new_user = form.save()
-            login(request, new_user)
-            if next_page:
-                return redirect(next_page)
-            return redirect('core:home')
-    return render(request, 'signup.html', {'form': form})
-
-class Login(LoginView):
-    template_name = 'login.html'
-    form_class = LoginForm
-    success_url = reverse_lazy('core:home') 
-
+class RedirectIfAuthenticated:
+    """
+    Redirect to the home page if the user is authenticated.
+    """
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return redirect('core:home')
         return super().dispatch(request, *args, **kwargs)
+
+class SignUp(RedirectIfAuthenticated, CreateView):
+    form_class = SignUpForm
+    template_name = 'signup.html'
+    success_url = reverse_lazy('core:home')
+    
+    def form_valid(self, form):
+        self.object = form.save()
+        auth_login(self.request, self.object) # Login the user
+        return redirect(self.get_success_url())
+
+class Login(RedirectIfAuthenticated, LoginView):
+    form_class = LoginForm
+    template_name = 'login.html'
+    success_url = reverse_lazy('core:home') 
+
+
+class ForgotPassword(RedirectIfAuthenticated, PasswordResetView):
+    form_class = PasswordResetForm
+    template_name = 'forgot-password.html'
+    email_template_name = 'password-reset-email.html'
+    success_url = reverse_lazy('accounts:login')
+
+class ResetPassword(RedirectIfAuthenticated, PasswordResetConfirmView):
+    form_class = SetPasswordForm
+    template_name = 'reset-password.html'
+    success_url = reverse_lazy('accounts:login')
+
+
+# class ProfileView(LoginRequiredMixin, TemplateView):
+#     template_name = 'profile.html'
