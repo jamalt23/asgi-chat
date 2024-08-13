@@ -27,5 +27,6 @@
         <button type="submit" class="btn">Login</button>
     </form>
     <p>Don't have an account? <a href="{% url 'accounts:signup' %}">Sign up</a></p>
+    <p>Forgot your password? <a href="{% url 'accounts:password-reset' %}">Reset</a></p>
 </div>
 {% endblock %}
